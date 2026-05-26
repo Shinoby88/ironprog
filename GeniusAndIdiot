@@ -16,7 +16,7 @@ namespace ConsoleApp271
             while (repeatTest != "no")
             {
                 Shuffle();
-                
+
                 int correctAnswerCount = 0;
                 int numberQuestionsCount = 0;
                 Console.Write("Доброго времени суток. Введите ваше имя = ");
@@ -28,7 +28,16 @@ namespace ConsoleApp271
                     Console.WriteLine($"Номер вопроса {numberQuestionsCount}");
                     Console.WriteLine(questions[i]);
                     Console.Write("Ваш ответ = ");
-                    int userAnswer = Convert.ToInt32(Console.ReadLine());
+                    string userAnswer = Console.ReadLine();
+
+                    if (int.TryParse(userAnswer, out int digitUserAnsver))
+                    {
+                        Console.WriteLine($"{digitUserAnsver}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Вы ввели НЕ число (буквы или символы)");
+                    }
                     Console.WriteLine();
 
                     if (userAnswer == answers[i])
@@ -73,7 +82,7 @@ namespace ConsoleApp271
             if (correctAnswerCount == 2)
                 return "Дурак";
             if (correctAnswerCount == 1)
-                return "Кретин"; 
+                return "Кретин";
             return "Идиот";
         }
 
