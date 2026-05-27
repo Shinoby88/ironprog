@@ -27,26 +27,32 @@ namespace ConsoleApp271
                     numberQuestionsCount++;
                     Console.WriteLine($"Номер вопроса {numberQuestionsCount}");
                     Console.WriteLine(questions[i]);
-                    Console.Write("Ваш ответ = ");
-                    string userAnswer = Console.ReadLine();
+                    bool isValidInput= false;
 
-                    if (int.TryParse(userAnswer, out int digitUserAnsver))
+                    while (!isValidInput)
                     {
-                        Console.WriteLine($"{digitUserAnsver}");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Вы ввели НЕ число (буквы или символы)");
-                    }
-                    Console.WriteLine();
+                        Console.Write("Ваш ответ = ");
+                        string userAnswer = Console.ReadLine();
 
-                    if (userAnswer == answers[i])
-                    {
-                        correctAnswerCount++;
-                    }
+                        if (int.TryParse(userAnswer, out int digitUserAnswer))
+                        {
+                            isValidInput = true;
+
+                            if (digitUserAnswer == answers[i])
+                            {
+                                correctAnswerCount++;
+                            }
+
+                        }
+                        else
+                        {
+                            Console.WriteLine("Вы ввели НЕ число (буквы или символы)");
+                        }
+
+                        Console.WriteLine();
+                    }                    
                 }
 
-                string userDiagnosis = GetDiagnosis(correctAnswerCount);
                 Console.WriteLine($"Количество правильных ответов = {correctAnswerCount}");
                 Console.WriteLine($"Поздравляю {userName}, ваш диагноз {GetDiagnosis(correctAnswerCount)}");
                 Console.Write("Желаете ли пройти еще раз? yes или no? ");
