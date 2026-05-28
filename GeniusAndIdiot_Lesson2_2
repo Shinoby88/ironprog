@@ -19,8 +19,6 @@ namespace ConsoleApp271
 
                 int correctAnswerCount = 0;
                 int numberQuestionsCount = 0;
-                int procentAnswer;
-                int maxProcentAnswer = 100;
                 Console.Write("Доброго времени суток. Введите ваше имя = ");
                 string userName = Console.ReadLine();
 
@@ -42,9 +40,7 @@ namespace ConsoleApp271
 
                             if (digitUserAnswer == answers[i])
                             {
-                                correctAnswerCount++;
-                                procentAnswer = (correctAnswerCount * maxProcentAnswer)/answers.Length;
-
+                                correctAnswerCount++;                             
                             }
 
                         }
@@ -58,7 +54,7 @@ namespace ConsoleApp271
                 }
 
                 Console.WriteLine($"Количество правильных ответов = {correctAnswerCount}");
-                Console.WriteLine($"Поздравляю {userName}, ваш диагноз {GetDiagnosis(correctAnswerCount)}");
+                Console.WriteLine($"Поздравляю {userName}, ваш диагноз {GetDiagnosis(correctAnswerCount, questions.Length)}");
                 Console.Write("Желаете ли пройти еще раз? yes или no? ");
                 repeatTest = Console.ReadLine();
             }
@@ -81,17 +77,19 @@ namespace ConsoleApp271
             answers[4] = 2;
         }
 
-        static string GetDiagnosis(int correctAnswerCount)
+        static string GetDiagnosis(int correctAnswerCount, int totalQuestions)
         {
-            if (correctAnswerCount == 5)
+            int percent = (correctAnswerCount*100) / totalQuestions;
+
+            if (correctAnswerCount == 100)
                 return "Гений";
-            if (correctAnswerCount == 4)
+            if (correctAnswerCount >= 80)
                 return "Талант";
-            if (correctAnswerCount == 3)
+            if (correctAnswerCount >= 60)
                 return "Нормальный";
-            if (correctAnswerCount == 2)
+            if (correctAnswerCount >= 40)
                 return "Дурак";
-            if (correctAnswerCount == 1)
+            if (correctAnswerCount >= 20)
                 return "Кретин";
             return "Идиот";
         }
