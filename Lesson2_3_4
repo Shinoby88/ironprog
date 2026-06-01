@@ -109,7 +109,6 @@ namespace ConsoleApp271
 
                 (questions[i], questions[j]) = (questions[j], questions[i]);
                 (answers[i], answers[j]) = (answers[j], answers[i]);
-
             }
         }
 
@@ -139,6 +138,7 @@ namespace ConsoleApp271
             foreach (string line in lines)
             {
                 string[] parts = line.Split('|');
+                
                 if (parts.Length == 3)
                 {
                     string name = parts[0];
