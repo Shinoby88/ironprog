@@ -128,8 +128,6 @@ namespace ConsoleApp271
             Console.ReadKey();
         }
 
-
-
         static void InitializeData()
         {
             questions = new Question[5];
