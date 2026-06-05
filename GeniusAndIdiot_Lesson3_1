@@ -2,32 +2,29 @@ using System;
 using System.IO;
 
 namespace ConsoleApp271
+
 {
-    // Класс "Вопрос" - объединяет вопрос и ответ
     class Question
     {
         public string text;
         public int answer;
 
-        // Конструктор класса Question
-        public Question(string text, int answer)
+        public Question(string text, int answer) 
         {
             this.text = text;
             this.answer = answer;
         }
     }
 
-    // Класс "Пользователь" - хранит имя и результат
     class User
-    {
-        public string name;
+    { 
+        public string name; 
         public int correctCount;
 
-        // Конструктор класса User
         public User(string name)
         {
             this.name = name;
-            this.correctCount = 0;
+            correctCount = 0;
         }
     }
 
@@ -40,7 +37,7 @@ namespace ConsoleApp271
         static void Main(string[] args)
         {
             InitializeData();
-            string repeatTest = "";
+            string repeatTest = string.Empty;
 
             while (repeatTest != "no")
             {
@@ -73,6 +70,7 @@ namespace ConsoleApp271
                             {
                                 user.correctCount++;
                             }
+
                         }
                         else
                         {
@@ -98,16 +96,17 @@ namespace ConsoleApp271
         static void InitializeData()
         {
             questions = new Question[5];
+            
             questions[0] = new Question("Сколько будет 2 плюс 2 умноженное на 2 (2+2*2)?", 6);
             questions[1] = new Question("Бревно нужно распилить на десять частей. Сколько надо сделать распилов?", 9);
             questions[2] = new Question("На двух руках 10 пальцев. Сколько пальцев на 5 руках?", 25);
-            questions[3] = new Question("Укол делается каждые полчаса. Сколько нужно минут для трех уколов?", 60);
-            questions[4] = new Question("Пять свечей горело, две потухли. Сколько свечей осталось?", 2);
+            questions[3] = new Question("Укол делается каждые полчаса. Сколько нужно минут для трех уколов?",60);
+            questions[4] = new Question("Пять свечей горело, две потухли. Сколько свечей осталось?", 2);                        
         }
 
         static string GetDiagnosis(int correctAnswerCount, int totalQuestions)
         {
-            int percent = (correctAnswerCount * 100) / totalQuestions;
+            var percent = (correctAnswerCount * 100) / totalQuestions;
 
             if (percent == 100)
                 return "Гений";
@@ -131,12 +130,13 @@ namespace ConsoleApp271
                 Question temp = questions[i];
                 questions[i] = questions[j];
                 questions[j] = temp;
+                ;
             }
         }
 
         static void SaveResult(string name, int correctCount, string diagnosis)
         {
-            string line = name + " | " + correctCount + " | " + diagnosis;
+            string line = $"{name} | {correctCount} | {diagnosis}";
             using (StreamWriter writer = new StreamWriter(resultFile, true))
             {
                 writer.WriteLine(line);
@@ -144,43 +144,43 @@ namespace ConsoleApp271
         }
 
         static void ShowAllResults()
-        {
-            if (!File.Exists(resultFile))
+        {   
+            if(!File.Exists(resultFile))
             {
                 Console.WriteLine("\n------- Результатов пока нет ---------- ");
                 return;
             }
 
-            Console.WriteLine("\n" + new string('=', 60));
+            Console.WriteLine("\n" + new string ('=', 60));
             Console.WriteLine("| {0,-20} | {1,-10} | {2,-15} |", "ФИО", "Правильных ответов", "Диагноз");
-            Console.WriteLine(new string('=', 60));
+            Console.WriteLine(new string('=' , 60));
 
             string[] lines = File.ReadAllLines(resultFile);
 
-            for (int i = 0; i < lines.Length; i++)
+            for (int i = 0; lines.Length > i; i++)
             {
                 string line = lines[i];
-                
+
                 int firstPipe = -1;
                 int secondPipe = -1;
                 
-                for (int j = 0; j < line.Length; j++)
+                for (int j = 0; j < line.Length; j ++)
                 {
                     if (line[j] == '|')
                     {
-                        if (firstPipe == -1)
+                        if(firstPipe == -1)                        
                             firstPipe = j;
-                        else if (secondPipe == -1)
-                            secondPipe = j;
+                        else if (secondPipe == -1) 
+                            secondPipe = j;                        
                     }
                 }
-                
-                if (firstPipe != -1 && secondPipe != -1)
+
+                if(firstPipe !=-1 && secondPipe != -1)
                 {
                     string name = line.Substring(0, firstPipe).Trim();
-                    string correct = line.Substring(firstPipe + 1, secondPipe - firstPipe - 1).Trim();
+                    string correct = line.Substring(firstPipe + 1, secondPipe - firstPipe-1).Trim();
                     string diagnosis = line.Substring(secondPipe + 1).Trim();
-                    
+
                     Console.WriteLine("| {0,-20} | {1,-10} | {2,-15} |", name, correct, diagnosis);
                 }
             }
