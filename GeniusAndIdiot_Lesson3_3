@@ -8,7 +8,7 @@ namespace ConsoleApp271
         public string text;
         public int answer;
 
-        public Question(string text, int answer)
+        public Question(string text, int answer) 
         {
             this.text = text;
             this.answer = answer;
@@ -16,8 +16,8 @@ namespace ConsoleApp271
     }
 
     class User
-    {
-        public string name;
+    { 
+        public string name; 
         public int correctCount;
 
         public User(string name)
@@ -32,13 +32,13 @@ namespace ConsoleApp271
         static Question[] questions;
         static Random random = new Random();
         static string resultFile = "results.txt";
-        static string questionsFile = "questions.txt";
-        static int questionCount = 0; // текущее количество вопросов
+        static string questionFile = "questions.txt";
+        static int questionCount = 0;
 
         static void Main(string[] args)
         {
             LoadQuestions();
-            
+
             string repeatTest = string.Empty;
 
             while (repeatTest != "no")
@@ -103,8 +103,7 @@ namespace ConsoleApp271
                         isValidInput = true;
 
                         if (digitUserAnswer == questions[i].answer)
-                        {
-                            Console.WriteLine("✓ Правильно!");
+                        {                            
                             user.correctCount++;
                         }
                         else
@@ -129,70 +128,109 @@ namespace ConsoleApp271
             Console.ReadKey();
         }
 
-        static void AddNewQuestion()
+
+
+        static void InitializeData()
         {
-            Console.Clear();
-            Console.WriteLine("========== ДОБАВЛЕНИЕ НОВОГО ВОПРОСА ==========");
+            questions = new Question[5];
+            questionCount = 5;
+            
+            questions[0] = new Question("Сколько будет 2 плюс 2 умноженное на 2 (2+2*2)?", 6);
+            questions[1] = new Question("Бревно нужно распилить на десять частей. Сколько надо сделать распилов?", 9);
+            questions[2] = new Question("На двух руках 10 пальцев. Сколько пальцев на 5 руках?", 25);
+            questions[3] = new Question("Укол делается каждые полчаса. Сколько нужно минут для трех уколов?",60);
+            questions[4] = new Question("Пять свечей горело, две потухли. Сколько свечей осталось?", 2);                        
+        }
 
-            // Ввод текста вопроса
-            string questionText = "";
-            while (string.IsNullOrWhiteSpace(questionText))
+        static string GetDiagnosis(int correctAnswerCount, int totalQuestions)
+        {
+            var percent = (correctAnswerCount * 100) / totalQuestions;
+
+            if (percent == 100)
+                return "Гений";
+            if (percent >= 80)
+                return "Талант";
+            if (percent >= 60)
+                return "Нормальный";
+            if (percent >= 40)
+                return "Дурак";
+            if (percent >= 20)
+                return "Кретин";
+            return "Идиот";
+        }
+
+        static void Shuffle()
+        {
+            for (int i = 0; i < questions.Length; i++)
             {
-                Console.Write("Введите текст вопроса: ");
-                questionText = Console.ReadLine();
-                if (string.IsNullOrWhiteSpace(questionText))
+                int j = random.Next(i, questions.Length);
+
+                Question temp = questions[i];
+                questions[i] = questions[j];
+                questions[j] = temp;                
+            }
+        }
+
+        static void SaveResult(string name, int correctCount, string diagnosis)
+        {
+            string line = $"{name} | {correctCount} | {diagnosis}";
+            using (StreamWriter writer = new StreamWriter(resultFile, true))
+            {
+                writer.WriteLine(line);
+            }
+        }
+
+        static void ShowAllResults()
+        {   
+            if(!File.Exists(resultFile))
+            {
+                Console.WriteLine("\n------- Результатов пока нет ---------- ");
+                return;
+            }
+
+            Console.WriteLine("\n" + new string ('=', 60));
+            Console.WriteLine("| {0,-20} | {1,-10} | {2,-15} |", "ФИО", "Правильных ответов", "Диагноз");
+            Console.WriteLine(new string('=' , 60));
+
+            string[] lines = File.ReadAllLines(resultFile);
+
+            for (int i = 0; lines.Length > i; i++)
+            {
+                string line = lines[i];
+
+                int firstPipe = -1;
+                int secondPipe = -1;
+                
+                for (int j = 0; j < line.Length; j ++)
                 {
-                    Console.WriteLine("Ошибка! Текст вопроса не может быть пустым.");
+                    if (line[j] == '|')
+                    {
+                        if(firstPipe == -1)                        
+                            firstPipe = j;
+                        else if (secondPipe == -1) 
+                            secondPipe = j;                        
+                    }
+                }
+
+                if(firstPipe !=-1 && secondPipe != -1)
+                {
+                    string name = line.Substring(0, firstPipe).Trim();
+                    string correct = line.Substring(firstPipe + 1, secondPipe - firstPipe-1).Trim();
+                    string diagnosis = line.Substring(secondPipe + 1).Trim();
+
+                    Console.WriteLine("| {0,-20} | {1,-10} | {2,-15} |", name, correct, diagnosis);
                 }
             }
 
-            // Ввод правильного ответа
-            int correctAnswer = 0;
-            bool isValidAnswer = false;
-            while (!isValidAnswer)
-            {
-                Console.Write("Введите правильный ответ (целое число): ");
-                string answerInput = Console.ReadLine();
-
-                if (int.TryParse(answerInput, out correctAnswer))
-                {
-                    isValidAnswer = true;
-                }
-                else
-                {
-                    Console.WriteLine("Ошибка! Ответ должен быть целым числом.");
-                }
-            }
-
-            // СОЗДАЁМ НОВЫЙ МАССИВ БОЛЬШЕГО РАЗМЕРА
-            Question[] newQuestions = new Question[questionCount + 1];
-
-            // КОПИРУЕМ СТАРЫЕ ВОПРОСЫ
-            for (int i = 0; i < questionCount; i++)
-            {
-                newQuestions[i] = questions[i];
-            }
-
-            // ДОБАВЛЯЕМ НОВЫЙ ВОПРОС
-            newQuestions[questionCount] = new Question(questionText, correctAnswer);
-
-            // ЗАМЕНЯЕМ СТАРЫЙ МАССИВ НОВЫМ
-            questions = newQuestions;
-            questionCount++;
-
-            SaveQuestions(); // сохраняем в файл
-
-            Console.WriteLine($"\n✅ Вопрос успешно добавлен! Всего вопросов: {questionCount}");
-            Console.Write("Нажмите любую клавишу для продолжения...");
-            Console.ReadKey();
+            Console.WriteLine(new string('=', 60));
         }
 
         static void LoadQuestions()
         {
-            if (File.Exists(questionsFile))
+            if (File.Exists(questionFile))
             {
-                string[] lines = File.ReadAllLines(questionsFile);
-                
+                string[] lines = File.ReadAllLines(questionFile);
+
                 if (lines.Length > 0)
                 {
                     questions = new Question[lines.Length];
@@ -213,119 +251,44 @@ namespace ConsoleApp271
                 }
             }
             else
-            {
-                InitializeData();
+            { 
+                InitializeData(); 
             }
         }
 
-        static void SaveQuestions()
-        {
-            using (StreamWriter writer = new StreamWriter(questionsFile))
-            {
-                for (int i = 0; i < questionCount; i++)
-                {
-                    writer.WriteLine($"{questions[i].text}|{questions[i].answer}");
-                }
-            }
-        }
-
-        static void InitializeData()
-        {
-            if (questionCount == 0)
-            {
-                questions = new Question[5];
-                questionCount = 5;
-
-                questions[0] = new Question("Сколько будет 2 плюс 2 умноженное на 2 (2+2*2)?", 6);
-                questions[1] = new Question("Бревно нужно распилить на десять частей. Сколько надо сделать распилов?", 9);
-                questions[2] = new Question("На двух руках 10 пальцев. Сколько пальцев на 5 руках?", 25);
-                questions[3] = new Question("Укол делается каждые полчаса. Сколько нужно минут для трех уколов?", 60);
-                questions[4] = new Question("Пять свечей горело, две потухли. Сколько свечей осталось?", 2);
-                
-                SaveQuestions();
-            }
-        }
-
-        static string GetDiagnosis(int correctAnswerCount, int totalQuestions)
-        {
-            int percent = (correctAnswerCount * 100) / totalQuestions;
-
-            if (percent == 100) return "Гений";
-            if (percent >= 80) return "Талант";
-            if (percent >= 60) return "Нормальный";
-            if (percent >= 40) return "Дурак";
-            if (percent >= 20) return "Кретин";
-            return "Идиот";
-        }
-
-        static void Shuffle()
-        {
-            for (int i = questionCount - 1; i > 0; i--)
-            {
-                int j = random.Next(i + 1);
-                Question temp = questions[i];
-                questions[i] = questions[j];
-                questions[j] = temp;
-            }
-        }
-
-        static void SaveResult(string name, int correctCount, string diagnosis)
-        {
-            string line = $"{name} | {correctCount} | {diagnosis}";
-            using (StreamWriter writer = new StreamWriter(resultFile, true))
-            {
-                writer.WriteLine(line);
-            }
-        }
-
-        static void ShowAllResults()
+        static void AddNewQuestion()
         {
             Console.Clear();
-            if (!File.Exists(resultFile))
+            Console.WriteLine("========== ДОБАВЛЕНИЕ НОВОГО ВОПРОСА ==========");
+
+            string questionText = string.Empty;
+            while(string.IsNullOrEmpty(questionText))
             {
-                Console.WriteLine("\n------- Результатов пока нет ----------");
-                Console.Write("Нажмите любую клавишу для продолжения...");
-                Console.ReadKey();
-                return;
-            }
-
-            Console.WriteLine("\n" + new string('=', 60));
-            Console.WriteLine("| {0,-20} | {1,-10} | {2,-15} |", "ФИО", "Правильных ответов", "Диагноз");
-            Console.WriteLine(new string('=', 60));
-
-            string[] lines = File.ReadAllLines(resultFile);
-
-            for (int i = 0; i < lines.Length; i++)
-            {
-                string line = lines[i];
-
-                int firstPipe = -1;
-                int secondPipe = -1;
-
-                for (int j = 0; j < line.Length; j++)
+                Console.Write("Введите текс вопроса: ");
+                questionText = Console.ReadLine();
+                if(string.IsNullOrEmpty(questionText))
                 {
-                    if (line[j] == '|')
-                    {
-                        if (firstPipe == -1)
-                            firstPipe = j;
-                        else if (secondPipe == -1)
-                            secondPipe = j;
-                    }
-                }
-
-                if (firstPipe != -1 && secondPipe != -1)
-                {
-                    string name = line.Substring(0, firstPipe).Trim();
-                    string correct = line.Substring(firstPipe + 1, secondPipe - firstPipe - 1).Trim();
-                    string diagnosis = line.Substring(secondPipe + 1).Trim();
-
-                    Console.WriteLine("| {0,-20} | {1,-10} | {2,-15} |", name, correct, diagnosis);
+                    Console.WriteLine("Ошибка!!! Вы ввели пустую строку!!!!!!!!!!!!!");
                 }
             }
 
-            Console.WriteLine(new string('=', 60));
-            Console.Write("\nНажмите любую клавишу для продолжения...");
-            Console.ReadKey();
+            int correctAnswer = 0;
+            bool isValidAnswer = false;
+
+            while(!isValidAnswer)
+            {
+                Console.Write("Введите правильный ответ (целое число): ");
+                string answerInput = Console.ReadLine();
+
+                if (int.TryParse(answerInput, out correctAnswer))
+                {
+                    isValidAnswer = true;
+                }
+                else
+                {
+                    Console.WriteLine("ЮВАГА!!! Ответ должен быть целым числом!!!!!!!!!!!!!!!!!!");
+                }
+            }
         }
     }
 }
