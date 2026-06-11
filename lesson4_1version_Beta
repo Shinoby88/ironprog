@@ -45,11 +45,11 @@ namespace ConsoleApp271
             {
                 Console.Clear();
                 Console.WriteLine("========== ГЛАВНОЕ МЕНЮ ==========");
-                Console.WriteLine("1. Пройти тест");
-                Console.WriteLine("2. Добавить новый вопрос");
-                Console.WriteLine("3. Посмотреть результаты");
-                Console.WriteLine("4. Удалить вопрос");
-                Console.WriteLine("5. Выйти");
+                Console.WriteLine("1. Пройти тест ");
+                Console.WriteLine("2. Добавить новый вопрос ");
+                Console.WriteLine("3. Посмотреть результаты ");
+                Console.WriteLine("4. Удалить вопрос ");
+                Console.WriteLine("5. Выйти ");
                 Console.Write("Выберите пункт: ");
 
                 string choice = Console.ReadLine();
@@ -81,10 +81,10 @@ namespace ConsoleApp271
 
         static void RunTest()
         {
-            if (questionCount == 0)
+            if(questionCount == 0)
             {
-                Console.WriteLine("Нет доступных вопросов для тестирования!");
-                Console.Write("Нажмите любую клавишу для продолжения...");
+                Console.WriteLine("Нет доступных вопросов для тестирования! ");
+                Console.Write("Нажмите любую клавишу для продолжения... ");
                 Console.ReadKey();
                 return;
             }
@@ -130,6 +130,7 @@ namespace ConsoleApp271
                     Console.WriteLine();
                 }
             }
+
             string diagnosis = GetDiagnosis(user.correctCount, questionCount);
             Console.WriteLine($"Количество правильных ответов = {user.correctCount} из {questionCount}");
             Console.WriteLine($"Поздравляю {user.name}, ваш диагноз: {diagnosis}");
@@ -153,8 +154,6 @@ namespace ConsoleApp271
 
         static string GetDiagnosis(int correctAnswerCount, int totalQuestions)
         {
-            if (totalQuestions == 0) return "Нет данных";
-            
             var percent = (correctAnswerCount * 100) / totalQuestions;
 
             if (percent == 100)
@@ -172,9 +171,9 @@ namespace ConsoleApp271
 
         static void Shuffle()
         {
-            for (int i = 0; i < questionCount; i++)
+            for (int i = 0; i < questions.Length; i++)
             {
-                int j = random.Next(i, questionCount);
+                int j = random.Next(i, questions.Length);
 
                 Question temp = questions[i];
                 questions[i] = questions[j];
@@ -196,8 +195,6 @@ namespace ConsoleApp271
             if (!File.Exists(resultFile))
             {
                 Console.WriteLine("\n------- Результатов пока нет ---------- ");
-                Console.Write("Нажмите любую клавишу для продолжения...");
-                Console.ReadKey();
                 return;
             }
 
@@ -234,8 +231,9 @@ namespace ConsoleApp271
                     Console.WriteLine("| {0,-20} | {1,-10} | {2,-15} |", name, correct, diagnosis);
                 }
             }
+
             Console.WriteLine(new string('=', 60));
-            Console.Write("Нажмите любую клавишу для продолжения...");
+            Console.Write("Нажмите любую клавишу для продолжения... ");
             Console.ReadKey();
         }
 
@@ -272,17 +270,6 @@ namespace ConsoleApp271
             }
         }
 
-        static void SaveQuestionsToFile()
-        {
-            using (StreamWriter writer = new StreamWriter(questionFile))
-            {
-                for (int i = 0; i < questionCount; i++)
-                {
-                    writer.WriteLine($"{questions[i].text}|{questions[i].answer}");
-                }
-            }
-        }
-
         static void AddNewQuestion()
         {
             Console.Clear();
@@ -291,7 +278,7 @@ namespace ConsoleApp271
             string questionText = string.Empty;
             while (string.IsNullOrEmpty(questionText))
             {
-                Console.Write("Введите текст вопроса: ");
+                Console.Write("Введите текс вопроса: ");
                 questionText = Console.ReadLine();
                 if (string.IsNullOrEmpty(questionText))
                 {
@@ -313,59 +300,70 @@ namespace ConsoleApp271
                 }
                 else
                 {
-                    Console.WriteLine("ВНИМАНИЕ!!! Ответ должен быть целым числом!!!!!!!!!!!!!!!!!!");
+                    Console.WriteLine("ЮВАГА!!! Ответ должен быть целым числом!!!!!!!!!!!!!!!!!!");
                 }
             }
 
             Question[] newQuestions = new Question[questionCount + 1];
-            
+
             for (int i = 0; i < questionCount; i++)
             {
                 newQuestions[i] = questions[i];
             }
-            
+
             newQuestions[questionCount] = new Question(questionText, correctAnswer);
-                        
+
             questions = newQuestions;
             questionCount++;
-            
+
             SaveQuestionsToFile();
-            
-            Console.WriteLine("\n✓ Вопрос успешно добавлен!");
-            Console.Write("Нажмите любую клавишу для продолжения...");
+
+            Console.WriteLine("\n Вопрос успешно добавлен!!! ");
+            Console.Write("Нажмите любую клавишу для продолжения ... ");
             Console.ReadKey();
+        }
+
+        static void SaveQuestionsToFile()
+        {
+            using(StreamWriter writer = new StreamWriter(questionFile))
+            {
+                for (int i = 0; i < questionCount; i++)
+                {
+                    writer.WriteLine($"{questions[i].text}|{questions[i].answer}");
+                }
+            }
         }
 
         static void RemoveQuestion()
         {
             Console.Clear();
-            Console.WriteLine("========== УДАЛЕНИЕ ВОПРОСА ==========");
+            Console.WriteLine("============================= УДАЛЕНИЕ ВОПРОСА =================================");
 
             if (questionCount == 0)
             {
-                Console.WriteLine("Нет вопросов для удаления!");
-                Console.Write("Нажмите любую клавишу для продолжения...");
+                Console.WriteLine("Нет вопросов для удаления!!! ");
+                Console.Write("Нажмите любую клавишу для продолжения ...");
                 Console.ReadKey();
                 return;
             }
 
             Console.WriteLine("\nСписок всех вопросов:");
             Console.WriteLine(new string('-', 60));
-            
+
             for (int i = 0; i < questionCount; i++)
             {
-                Console.WriteLine($"{i + 1}. {questions[i].text}");
-                Console.WriteLine($"   Правильный ответ: {questions[i].answer}");
+                Console.WriteLine($"{i+1}. {questions[i].text}");
+                Console.WriteLine($" Правильный ответ: {questions[i].answer}");
                 Console.WriteLine();
             }
             Console.WriteLine(new string('-', 60));
-           
+
             int questionNumber = 0;
             bool isValidInput = false;
 
             while (!isValidInput)
             {
-                Console.Write($"Введите номер вопроса для удаления (1-{questionCount}): ");
+                Console.Write($"Введите вопрос для удаления (1 - {questionCount}): ");
                 string input = Console.ReadLine();
 
                 if (int.TryParse(input, out questionNumber))
@@ -384,43 +382,7 @@ namespace ConsoleApp271
                     Console.WriteLine("Ошибка! Вы ввели НЕ число. Пожалуйста, введите корректный номер вопроса.");
                 }
             }
-           
-            Console.WriteLine("\nВы уверены, что хотите удалить следующий вопрос?");
-            Console.WriteLine($"Вопрос: {questions[questionNumber - 1].text}");
-            Console.WriteLine($"Правильный ответ: {questions[questionNumber - 1].answer}");
-            Console.Write("Да - введите 'да' или 'yes', Нет - любую другую клавишу: ");
-            
-            string confirmation = Console.ReadLine().ToLower();
-            
-            if (confirmation == "да" || confirmation == "yes")
-            {
-                string removedQuestionText = questions[questionNumber - 1].text;
-                
-                Question[] newQuestions = new Question[questionCount - 1];                
-                
-                int newIndex = 0;
-                for (int i = 0; i < questionCount; i++)
-                {
-                    if (i != questionNumber - 1) // пропускаем удаляемый вопрос
-                    {
-                        newQuestions[newIndex] = questions[i];
-                        newIndex++;
-                    }
-                }                
-                
-                questions = newQuestions;
-                questionCount--;
-                
-                SaveQuestionsToFile();
-                Console.WriteLine($"\n✓ Вопрос \"{removedQuestionText}\" успешно удален!");
-            }
-            else
-            {
-                Console.WriteLine("\n✗ Удаление отменено.");
-            }
-
-            Console.Write("\nНажмите любую клавишу для продолжения...");
-            Console.ReadKey();
         }
+
     }
 }
