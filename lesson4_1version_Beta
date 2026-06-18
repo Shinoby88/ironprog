@@ -1,388 +1,616 @@
-using System;
-using System.IO;
+# 🎯 ПОШАГОВОЕ РУКОВОДСТВО: Windows Forms приложение
 
-namespace ConsoleApp271
+## ШАГ 1: Создание нового проекта Windows Forms
+
+1. **Откройте Visual Studio**
+2. **Создайте новый проект:**
+   - Нажмите `Create a new project`
+   - Выберите `Windows Forms App (.NET Framework)` или `Windows Forms App`
+   - Название: `TestAppWinForms`
+   - Нажмите `Create`
+
+## ШАГ 2: Копируем классы из консольного приложения
+
+Создайте такие же классы в новом проекте:
+
+### 1. Создайте класс Question
+```csharp
+// Щелкните правой кнопкой по проекту -> Add -> Class -> Назовите "Question.cs"
+public class Question
 {
-    class Question
-    {
-        public string text;
-        public int answer;
+    public string Text { get; set; }
+    public int Answer { get; set; }
 
-        public Question(string text, int answer)
-        {
-            this.text = text;
-            this.answer = answer;
-        }
+    public Question(string text, int answer)
+    {
+        Text = text;
+        Answer = answer;
     }
+}
+```
 
-    class User
+### 2. Создайте класс User
+```csharp
+// Add -> Class -> "User.cs"
+public class User
+{
+    public string Name { get; set; }
+    public int CorrectCount { get; set; }
+
+    public User(string name)
     {
-        public string name;
-        public int correctCount;
-
-        public User(string name)
-        {
-            this.name = name;
-            correctCount = 0;
-        }
+        Name = name;
+        CorrectCount = 0;
     }
+}
+```
 
-    internal class Program
+## ШАГ 3: Создаем главную форму (Главное меню)
+
+### 3.1. Дизайн формы
+На форму `Form1` добавьте элементы:
+
+```
+📋 Элементы управления:
+┌─────────────────────────────────────────┐
+│  [Label] "ГЛАВНОЕ МЕНЮ"                │
+│  [Button] "Пройти тест"                │
+│  [Button] "Добавить вопрос"            │
+│  [Button] "Посмотреть результаты"      │
+│  [Button] "Удалить вопрос"             │
+│  [Button] "Выход"                      │
+└─────────────────────────────────────────┘
+```
+
+**Как добавить:**
+- Откройте Toolbox (Ctrl+Alt+X)
+- Перетащите 1 Label и 5 Button на форму
+- Настройте свойства в Properties (F4)
+
+### 3.2. Код главной формы
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
+
+namespace TestAppWinForms
+{
+    public partial class Form1 : Form
     {
-        static Question[] questions;
-        static Random random = new Random();
-        static string resultFile = "results.txt";
-        static string questionFile = "questions.txt";
-        static int questionCount = 0;
+        // Это наши глобальные переменные (как в консольном приложении)
+        private static List<Question> questions = new List<Question>();
+        private static Random random = new Random();
+        private static string resultFile = "results.txt";
+        private static string questionFile = "questions.txt";
 
-        static void Main(string[] args)
+        public Form1()
         {
-            LoadQuestions();
-
-            string repeatTest = string.Empty;
-
-            while (repeatTest != "no")
-            {
-                Console.Clear();
-                Console.WriteLine("========== ГЛАВНОЕ МЕНЮ ==========");
-                Console.WriteLine("1. Пройти тест ");
-                Console.WriteLine("2. Добавить новый вопрос ");
-                Console.WriteLine("3. Посмотреть результаты ");
-                Console.WriteLine("4. Удалить вопрос ");
-                Console.WriteLine("5. Выйти ");
-                Console.Write("Выберите пункт: ");
-
-                string choice = Console.ReadLine();
-
-                switch (choice)
-                {
-                    case "1":
-                        RunTest();
-                        break;
-                    case "2":
-                        AddNewQuestion();
-                        break;
-                    case "3":
-                        ShowAllResults();
-                        break;
-                    case "4":
-                        RemoveQuestion();
-                        break;
-                    case "5":
-                        repeatTest = "no";
-                        break;
-                    default:
-                        Console.WriteLine("Неверный выбор! Нажмите любую клавишу...");
-                        Console.ReadKey();
-                        break;
-                }
-            }
+            InitializeComponent();
+            LoadQuestions(); // Загружаем вопросы при запуске
         }
 
-        static void RunTest()
+        // КНОПКА "Пройти тест"
+        private void btnStartTest_Click(object sender, EventArgs e)
         {
-            if(questionCount == 0)
+            if (questions.Count == 0)
             {
-                Console.WriteLine("Нет доступных вопросов для тестирования! ");
-                Console.Write("Нажмите любую клавишу для продолжения... ");
-                Console.ReadKey();
+                MessageBox.Show("Нет вопросов для тестирования!", "Ошибка", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            Shuffle();
+            // Открываем форму теста
+            TestForm testForm = new TestForm(questions, random);
+            testForm.ShowDialog();
+        }
 
-            Console.Write("Доброго времени суток. Введите ваше имя = ");
-            string userName = Console.ReadLine();
-            User user = new User(userName);
-
-            int numberQuestionsCount = 0;
-
-            for (int i = 0; i < questionCount; i++)
+        // КНОПКА "Добавить вопрос"
+        private void btnAddQuestion_Click(object sender, EventArgs e)
+        {
+            AddQuestionForm addForm = new AddQuestionForm();
+            if (addForm.ShowDialog() == DialogResult.OK)
             {
-                numberQuestionsCount++;
-                Console.WriteLine($"Номер вопроса {numberQuestionsCount}");
-                Console.WriteLine(questions[i].text);
-
-                bool isValidInput = false;
-
-                while (!isValidInput)
-                {
-                    Console.Write("Ваш ответ = ");
-                    string userAnswer = Console.ReadLine();
-
-                    if (int.TryParse(userAnswer, out int digitUserAnswer))
-                    {
-                        isValidInput = true;
-
-                        if (digitUserAnswer == questions[i].answer)
-                        {
-                            user.correctCount++;
-                        }
-                        else
-                        {
-                            Console.WriteLine($"✗ Неправильно. Правильный ответ: {questions[i].answer}");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Вы ввели НЕ число (буквы или символы)");
-                    }
-                    Console.WriteLine();
-                }
-            }
-
-            string diagnosis = GetDiagnosis(user.correctCount, questionCount);
-            Console.WriteLine($"Количество правильных ответов = {user.correctCount} из {questionCount}");
-            Console.WriteLine($"Поздравляю {user.name}, ваш диагноз: {diagnosis}");
-
-            SaveResult(user.name, user.correctCount, diagnosis);
-            Console.Write("Нажмите любую клавишу для продолжения...");
-            Console.ReadKey();
-        }
-
-        static void InitializeData()
-        {
-            questions = new Question[5];
-            questionCount = 5;
-
-            questions[0] = new Question("Сколько будет 2 плюс 2 умноженное на 2 (2+2*2)?", 6);
-            questions[1] = new Question("Бревно нужно распилить на десять частей. Сколько надо сделать распилов?", 9);
-            questions[2] = new Question("На двух руках 10 пальцев. Сколько пальцев на 5 руках?", 25);
-            questions[3] = new Question("Укол делается каждые полчаса. Сколько нужно минут для трех уколов?", 60);
-            questions[4] = new Question("Пять свечей горело, две потухли. Сколько свечей осталось?", 2);
-        }
-
-        static string GetDiagnosis(int correctAnswerCount, int totalQuestions)
-        {
-            var percent = (correctAnswerCount * 100) / totalQuestions;
-
-            if (percent == 100)
-                return "Гений";
-            if (percent >= 80)
-                return "Талант";
-            if (percent >= 60)
-                return "Нормальный";
-            if (percent >= 40)
-                return "Дурак";
-            if (percent >= 20)
-                return "Кретин";
-            return "Идиот";
-        }
-
-        static void Shuffle()
-        {
-            for (int i = 0; i < questions.Length; i++)
-            {
-                int j = random.Next(i, questions.Length);
-
-                Question temp = questions[i];
-                questions[i] = questions[j];
-                questions[j] = temp;
+                // Добавляем новый вопрос
+                questions.Add(new Question(addForm.QuestionText, addForm.Answer));
+                SaveQuestionsToFile();
+                MessageBox.Show("Вопрос успешно добавлен!", "Успех", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
-        static void SaveResult(string name, int correctCount, string diagnosis)
+        // КНОПКА "Посмотреть результаты"
+        private void btnShowResults_Click(object sender, EventArgs e)
         {
-            string line = $"{name} | {correctCount} | {diagnosis}";
-            using (StreamWriter writer = new StreamWriter(resultFile, true))
-            {
-                writer.WriteLine(line);
-            }
+            ResultsForm resultsForm = new ResultsForm(resultFile);
+            resultsForm.ShowDialog();
         }
 
-        static void ShowAllResults()
+        // КНОПКА "Удалить вопрос"
+        private void btnDeleteQuestion_Click(object sender, EventArgs e)
         {
-            if (!File.Exists(resultFile))
+            if (questions.Count == 0)
             {
-                Console.WriteLine("\n------- Результатов пока нет ---------- ");
+                MessageBox.Show("Нет вопросов для удаления!", "Ошибка", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            Console.WriteLine("\n" + new string('=', 60));
-            Console.WriteLine("| {0,-20} | {1,-10} | {2,-15} |", "ФИО", "Правильных ответов", "Диагноз");
-            Console.WriteLine(new string('=', 60));
-
-            string[] lines = File.ReadAllLines(resultFile);
-
-            for (int i = 0; lines.Length > i; i++)
+            DeleteQuestionForm deleteForm = new DeleteQuestionForm(questions);
+            if (deleteForm.ShowDialog() == DialogResult.OK)
             {
-                string line = lines[i];
-
-                int firstPipe = -1;
-                int secondPipe = -1;
-
-                for (int j = 0; j < line.Length; j++)
-                {
-                    if (line[j] == '|')
-                    {
-                        if (firstPipe == -1)
-                            firstPipe = j;
-                        else if (secondPipe == -1)
-                            secondPipe = j;
-                    }
-                }
-
-                if (firstPipe != -1 && secondPipe != -1)
-                {
-                    string name = line.Substring(0, firstPipe).Trim();
-                    string correct = line.Substring(firstPipe + 1, secondPipe - firstPipe - 1).Trim();
-                    string diagnosis = line.Substring(secondPipe + 1).Trim();
-
-                    Console.WriteLine("| {0,-20} | {1,-10} | {2,-15} |", name, correct, diagnosis);
-                }
+                // Удаляем вопрос
+                int index = deleteForm.SelectedIndex;
+                questions.RemoveAt(index);
+                SaveQuestionsToFile();
+                MessageBox.Show("Вопрос успешно удален!", "Успех", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-
-            Console.WriteLine(new string('=', 60));
-            Console.Write("Нажмите любую клавишу для продолжения... ");
-            Console.ReadKey();
         }
 
-        static void LoadQuestions()
+        // КНОПКА "Выход"
+        private void btnExit_Click(object sender, EventArgs e)
         {
-            if (File.Exists(questionFile))
+            Application.Exit();
+        }
+
+        // МЕТОДЫ для работы с файлами (как в консольном приложении)
+        private void LoadQuestions()
+        {
+            if (System.IO.File.Exists(questionFile))
             {
-                string[] lines = File.ReadAllLines(questionFile);
-
-                if (lines.Length > 0)
+                string[] lines = System.IO.File.ReadAllLines(questionFile);
+                foreach (string line in lines)
                 {
-                    questions = new Question[lines.Length];
-                    questionCount = lines.Length;
-
-                    for (int i = 0; i < lines.Length; i++)
+                    string[] parts = line.Split('|');
+                    if (parts.Length == 2 && int.TryParse(parts[1], out int answer))
                     {
-                        string[] parts = lines[i].Split('|');
-                        if (parts.Length == 2 && int.TryParse(parts[1], out int answer))
-                        {
-                            questions[i] = new Question(parts[0], answer);
-                        }
+                        questions.Add(new Question(parts[0], answer));
                     }
                 }
-                else
-                {
-                    InitializeData();
-                    SaveQuestionsToFile();
-                }
             }
-            else
+
+            // Если вопросов нет - создаем начальные
+            if (questions.Count == 0)
             {
-                InitializeData();
+                InitializeDefaultQuestions();
                 SaveQuestionsToFile();
             }
         }
 
-        static void AddNewQuestion()
+        private void InitializeDefaultQuestions()
         {
-            Console.Clear();
-            Console.WriteLine("========== ДОБАВЛЕНИЕ НОВОГО ВОПРОСА ==========");
+            questions.Add(new Question("Сколько будет 2 плюс 2 умноженное на 2 (2+2*2)?", 6));
+            questions.Add(new Question("Бревно нужно распилить на десять частей. Сколько надо сделать распилов?", 9));
+            questions.Add(new Question("На двух руках 10 пальцев. Сколько пальцев на 5 руках?", 25));
+            questions.Add(new Question("Укол делается каждые полчаса. Сколько нужно минут для трех уколов?", 60));
+            questions.Add(new Question("Пять свечей горело, две потухли. Сколько свечей осталось?", 2));
+        }
 
-            string questionText = string.Empty;
-            while (string.IsNullOrEmpty(questionText))
+        private void SaveQuestionsToFile()
+        {
+            using (System.IO.StreamWriter writer = new System.IO.StreamWriter(questionFile))
             {
-                Console.Write("Введите текс вопроса: ");
-                questionText = Console.ReadLine();
-                if (string.IsNullOrEmpty(questionText))
+                foreach (Question q in questions)
                 {
-                    Console.WriteLine("Ошибка!!! Вы ввели пустую строку!!!!!!!!!!!!!");
+                    writer.WriteLine($"{q.Text}|{q.Answer}");
                 }
             }
+        }
+    }
+}
+```
 
-            int correctAnswer = 0;
-            bool isValidAnswer = false;
+## ШАГ 4: Форма для прохождения теста (TestForm)
 
-            while (!isValidAnswer)
+### 4.1. Дизайн формы
+```
+┌─────────────────────────────────────────────┐
+│  [Label] "Тестирование"                    │
+│  [Label] "Вопрос X из Y"                   │
+│  [Label] "Текст вопроса"                   │
+│  [TextBox] "Введите ответ"                 │
+│  [Button] "Ответить"                       │
+│  [Label] "Результат: правильных из X"      │
+└─────────────────────────────────────────────┘
+```
+
+### 4.2. Код формы
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
+
+namespace TestAppWinForms
+{
+    public partial class TestForm : Form
+    {
+        private List<Question> questions;
+        private Random random;
+        private List<Question> shuffledQuestions;
+        private int currentQuestionIndex = 0;
+        private int correctCount = 0;
+        private string userName;
+
+        public TestForm(List<Question> questions, Random random)
+        {
+            InitializeComponent();
+            this.questions = questions;
+            this.random = random;
+            
+            // Перемешиваем вопросы
+            shuffledQuestions = new List<Question>(questions);
+            for (int i = 0; i < shuffledQuestions.Count - 1; i++)
             {
-                Console.Write("Введите правильный ответ (целое число): ");
-                string answerInput = Console.ReadLine();
+                int j = random.Next(i + 1, shuffledQuestions.Count);
+                Question temp = shuffledQuestions[i];
+                shuffledQuestions[i] = shuffledQuestions[j];
+                shuffledQuestions[j] = temp;
+            }
 
-                if (int.TryParse(answerInput, out correctAnswer))
+            AskUserName();
+        }
+
+        private void AskUserName()
+        {
+            // Спрашиваем имя пользователя
+            using (var form = new Form())
+            {
+                form.Text = "Введите имя";
+                form.Size = new System.Drawing.Size(300, 150);
+                form.FormBorderStyle = FormBorderStyle.FixedDialog;
+                form.StartPosition = FormStartPosition.CenterParent;
+
+                Label label = new Label() { Text = "Введите ваше имя:", Left = 20, Top = 20, Width = 200 };
+                TextBox textBox = new TextBox() { Left = 20, Top = 45, Width = 240 };
+                Button buttonOk = new Button() { Text = "OK", Left = 180, Top = 75, Width = 80, DialogResult = DialogResult.OK };
+
+                form.Controls.Add(label);
+                form.Controls.Add(textBox);
+                form.Controls.Add(buttonOk);
+
+                if (form.ShowDialog() == DialogResult.OK && !string.IsNullOrEmpty(textBox.Text))
                 {
-                    isValidAnswer = true;
+                    userName = textBox.Text;
+                    ShowQuestion();
                 }
                 else
                 {
-                    Console.WriteLine("ЮВАГА!!! Ответ должен быть целым числом!!!!!!!!!!!!!!!!!!");
-                }
-            }
-
-            Question[] newQuestions = new Question[questionCount + 1];
-
-            for (int i = 0; i < questionCount; i++)
-            {
-                newQuestions[i] = questions[i];
-            }
-
-            newQuestions[questionCount] = new Question(questionText, correctAnswer);
-
-            questions = newQuestions;
-            questionCount++;
-
-            SaveQuestionsToFile();
-
-            Console.WriteLine("\n Вопрос успешно добавлен!!! ");
-            Console.Write("Нажмите любую клавишу для продолжения ... ");
-            Console.ReadKey();
-        }
-
-        static void SaveQuestionsToFile()
-        {
-            using(StreamWriter writer = new StreamWriter(questionFile))
-            {
-                for (int i = 0; i < questionCount; i++)
-                {
-                    writer.WriteLine($"{questions[i].text}|{questions[i].answer}");
+                    this.Close();
                 }
             }
         }
 
-        static void RemoveQuestion()
+        private void ShowQuestion()
         {
-            Console.Clear();
-            Console.WriteLine("============================= УДАЛЕНИЕ ВОПРОСА =================================");
-
-            if (questionCount == 0)
+            if (currentQuestionIndex < shuffledQuestions.Count)
             {
-                Console.WriteLine("Нет вопросов для удаления!!! ");
-                Console.Write("Нажмите любую клавишу для продолжения ...");
-                Console.ReadKey();
+                lblQuestionNumber.Text = $"Вопрос {currentQuestionIndex + 1} из {shuffledQuestions.Count}";
+                lblQuestionText.Text = shuffledQuestions[currentQuestionIndex].Text;
+                txtAnswer.Text = "";
+                txtAnswer.Focus();
+                lblResult.Text = $"Правильных ответов: {correctCount} из {shuffledQuestions.Count}";
+            }
+            else
+            {
+                ShowResults();
+            }
+        }
+
+        private void btnAnswer_Click(object sender, EventArgs e)
+        {
+            // Проверяем ввод
+            if (!int.TryParse(txtAnswer.Text, out int userAnswer))
+            {
+                MessageBox.Show("Пожалуйста, введите число!", "Ошибка", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtAnswer.Text = "";
+                txtAnswer.Focus();
                 return;
             }
 
-            Console.WriteLine("\nСписок всех вопросов:");
-            Console.WriteLine(new string('-', 60));
-
-            for (int i = 0; i < questionCount; i++)
+            // Проверяем правильность
+            if (userAnswer == shuffledQuestions[currentQuestionIndex].Answer)
             {
-                Console.WriteLine($"{i+1}. {questions[i].text}");
-                Console.WriteLine($" Правильный ответ: {questions[i].answer}");
-                Console.WriteLine();
+                correctCount++;
+                MessageBox.Show("✅ Правильно!", "Отлично", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            Console.WriteLine(new string('-', 60));
-
-            int questionNumber = 0;
-            bool isValidInput = false;
-
-            while (!isValidInput)
+            else
             {
-                Console.Write($"Введите вопрос для удаления (1 - {questionCount}): ");
-                string input = Console.ReadLine();
+                MessageBox.Show($"❌ Неправильно. Правильный ответ: {shuffledQuestions[currentQuestionIndex].Answer}", 
+                    "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
 
-                if (int.TryParse(input, out questionNumber))
+            // Переходим к следующему вопросу
+            currentQuestionIndex++;
+            ShowQuestion();
+        }
+
+        private void ShowResults()
+        {
+            string diagnosis = GetDiagnosis(correctCount, shuffledQuestions.Count);
+            
+            string message = $"Количество правильных ответов: {correctCount} из {shuffledQuestions.Count}\n" +
+                           $"Поздравляю {userName}, ваш диагноз: {diagnosis}";
+
+            MessageBox.Show(message, "Результаты теста", 
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            // Сохраняем результат
+            SaveResult(userName, correctCount, diagnosis);
+            
+            this.Close();
+        }
+
+        private string GetDiagnosis(int correctCount, int totalQuestions)
+        {
+            int percent = (correctCount * 100) / totalQuestions;
+
+            if (percent == 100) return "Гений";
+            if (percent >= 80) return "Талант";
+            if (percent >= 60) return "Нормальный";
+            if (percent >= 40) return "Дурак";
+            if (percent >= 20) return "Кретин";
+            return "Идиот";
+        }
+
+        private void SaveResult(string name, int correctCount, string diagnosis)
+        {
+            string line = $"{name} | {correctCount} | {diagnosis}";
+            using (System.IO.StreamWriter writer = new System.IO.StreamWriter("results.txt", true))
+            {
+                writer.WriteLine(line);
+            }
+        }
+    }
+}
+```
+
+## ШАГ 5: Форма добавления вопроса
+
+### 5.1. Дизайн
+```
+┌─────────────────────────────────────────┐
+│  [Label] "Текст вопроса:"              │
+│  [TextBox] "Введите текст"             │
+│  [Label] "Правильный ответ:"           │
+│  [TextBox] "Введите число"             │
+│  [Button] "Добавить" [Button] "Отмена" │
+└─────────────────────────────────────────┘
+```
+
+### 5.2. Код
+```csharp
+using System.Windows.Forms;
+
+namespace TestAppWinForms
+{
+    public partial class AddQuestionForm : Form
+    {
+        public string QuestionText { get; private set; }
+        public int Answer { get; private set; }
+
+        public AddQuestionForm()
+        {
+            InitializeComponent();
+        }
+
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            // Проверяем текст
+            if (string.IsNullOrWhiteSpace(txtQuestion.Text))
+            {
+                MessageBox.Show("Введите текст вопроса!", "Ошибка", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtQuestion.Focus();
+                return;
+            }
+
+            // Проверяем ответ
+            if (!int.TryParse(txtAnswer.Text, out int answer))
+            {
+                MessageBox.Show("Введите правильный ответ (целое число)!", "Ошибка", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtAnswer.Focus();
+                return;
+            }
+
+            QuestionText = txtQuestion.Text;
+            Answer = answer;
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
+            Close();
+        }
+    }
+}
+```
+
+## ШАГ 6: Форма результатов
+
+### 6.1. Дизайн
+```
+┌─────────────────────────────────────────┐
+│  [ListBox] "Результаты"               │
+│  [Button] "Закрыть"                   │
+└─────────────────────────────────────────┘
+```
+
+### 6.2. Код
+```csharp
+using System;
+using System.Windows.Forms;
+
+namespace TestAppWinForms
+{
+    public partial class ResultsForm : Form
+    {
+        public ResultsForm(string resultFile)
+        {
+            InitializeComponent();
+            LoadResults(resultFile);
+        }
+
+        private void LoadResults(string resultFile)
+        {
+            if (!System.IO.File.Exists(resultFile))
+            {
+                listBoxResults.Items.Add("Результатов пока нет!");
+                return;
+            }
+
+            string[] lines = System.IO.File.ReadAllLines(resultFile);
+            
+            listBoxResults.Items.Add("========== РЕЗУЛЬТАТЫ ==========");
+            listBoxResults.Items.Add($"{"ФИО",-20} | {"Правильных ответов",-10} | {"Диагноз",-15}");
+            listBoxResults.Items.Add(new string('=', 60));
+
+            foreach (string line in lines)
+            {
+                string[] parts = line.Split('|');
+                if (parts.Length == 3)
                 {
-                    if (questionNumber >= 1 && questionNumber <= questionCount)
-                    {
-                        isValidInput = true;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Ошибка! Введите число от 1 до {questionCount}");
-                    }
+                    string formattedLine = $"{parts[0].Trim(),-20} | {parts[1].Trim(),-10} | {parts[2].Trim(),-15}";
+                    listBoxResults.Items.Add(formattedLine);
                 }
-                else
-                {
-                    Console.WriteLine("Ошибка! Вы ввели НЕ число. Пожалуйста, введите корректный номер вопроса.");
-                }
+            }
+            
+            listBoxResults.Items.Add(new string('=', 60));
+        }
+
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+    }
+}
+```
+
+## ШАГ 7: Форма удаления вопроса
+
+### 7.1. Дизайн
+```
+┌─────────────────────────────────────────┐
+│  [ListBox] "Список вопросов"          │
+│  [Button] "Удалить" [Button] "Отмена" │
+└─────────────────────────────────────────┘
+```
+
+### 7.2. Код
+```csharp
+using System.Collections.Generic;
+using System.Windows.Forms;
+
+namespace TestAppWinForms
+{
+    public partial class DeleteQuestionForm : Form
+    {
+        public int SelectedIndex { get; private set; } = -1;
+
+        public DeleteQuestionForm(List<Question> questions)
+        {
+            InitializeComponent();
+            LoadQuestions(questions);
+        }
+
+        private void LoadQuestions(List<Question> questions)
+        {
+            for (int i = 0; i < questions.Count; i++)
+            {
+                listBoxQuestions.Items.Add($"{i + 1}. {questions[i].Text}");
             }
         }
 
+        private void btnDelete_Click(object sender, EventArgs e)
+        {
+            if (listBoxQuestions.SelectedIndex == -1)
+            {
+                MessageBox.Show("Выберите вопрос для удаления!", "Ошибка", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            SelectedIndex = listBoxQuestions.SelectedIndex;
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+            DialogResult = DialogResult.Cancel;
+            Close();
+        }
     }
 }
+```
+
+## ШАГ 8: Окончательная настройка формы Form1
+
+Вернемся к форме Form1 и привяжем кнопки:
+
+```csharp
+public partial class Form1 : Form
+{
+    public Form1()
+    {
+        InitializeComponent();
+        LoadQuestions();
+        
+        // Подписываем события для кнопок (через дизайнер или в коде)
+        btnStartTest.Click += btnStartTest_Click;
+        btnAddQuestion.Click += btnAddQuestion_Click;
+        btnShowResults.Click += btnShowResults_Click;
+        btnDeleteQuestion.Click += btnDeleteQuestion_Click;
+        btnExit.Click += btnExit_Click;
+    }
+    // ... остальной код
+}
+```
+
+## 📝 ИТОГОВАЯ СТРУКТУРА ПРОЕКТА:
+
+```
+TestAppWinForms/
+├── Form1.cs (Главное меню)
+├── TestForm.cs (Прохождение теста)
+├── AddQuestionForm.cs (Добавление вопроса)
+├── ResultsForm.cs (Просмотр результатов)
+├── DeleteQuestionForm.cs (Удаление вопроса)
+├── Question.cs (Класс вопроса)
+├── User.cs (Класс пользователя)
+├── questions.txt (Файл с вопросами)
+└── results.txt (Файл с результатами)
+```
+
+## 🎯 ОСНОВНЫЕ ОТЛИЧИЯ ОТ КОНСОЛЬНОГО ПРИЛОЖЕНИЯ:
+
+| Консольное | Windows Forms |
+|------------|---------------|
+| `Console.WriteLine()` | `MessageBox.Show()` или `Label.Text` |
+| `Console.ReadLine()` | `TextBox.Text` |
+| Циклы для ввода/вывода | События кнопок |
+| Текстовое меню | Кнопки |
+| Пошаговый опрос | Формы и диалоги |
+
+## ❗ ВАЖНЫЕ МОМЕНТЫ:
+
+1. **Не забудьте добавить using** в начале каждого файла:
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
+```
+
+2. **В дизайнере форм** задайте имена элементам:
+   - Кнопки: `btnStartTest`, `btnAddQuestion`, `btnShowResults`, `btnDeleteQuestion`, `btnExit`
+   - Текстовые поля: `txtAnswer`, `txtQuestion`, `txtAnswer` (в форме добавления)
+   - Метки: `lblQuestionNumber`, `lblQuestionText`, `lblResult`
+   - Списки: `listBoxQuestions`, `listBoxResults`
+
+3. **Файлы** будут создаваться в папке `bin/Debug/` или `bin/Release/`
+
+Готово! 🎉 Теперь у вас есть Windows Forms приложение с той же функциональностью!
